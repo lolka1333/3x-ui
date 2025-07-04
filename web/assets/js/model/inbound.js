@@ -2157,10 +2157,20 @@ Inbound.ShadowsocksSettings = class extends Inbound.Settings {
     ) {
         super(protocol);
         this.method = method;
-        this.password = password;
+        // Автоматически генерируем пароль для Shadowsocks 2022 если он пустой
+        if (password === '' && this.isSS2022(method)) {
+            this.password = RandomUtil.randomShadowsocksPassword(method);
+        } else {
+            this.password = password;
+        }
         this.network = network;
         this.shadowsockses = shadowsockses;
         this.ivCheck = ivCheck;
+    }
+
+    // Метод для проверки является ли метод Shadowsocks 2022
+    isSS2022(method) {
+        return [SSMethods.BLAKE3_AES_128_GCM, SSMethods.BLAKE3_AES_256_GCM, SSMethods.BLAKE3_CHACHA20_POLY1305].includes(method);
     }
 
     static fromJson(json = {}) {
@@ -2201,7 +2211,12 @@ Inbound.ShadowsocksSettings.Shadowsocks = class extends XrayCommonClass {
     ) {
         super();
         this.method = method;
-        this.password = password;
+        // Автоматически генерируем пароль для Shadowsocks 2022 если он пустой
+        if (password === '' && this.isSS2022(method)) {
+            this.password = RandomUtil.randomShadowsocksPassword(method);
+        } else {
+            this.password = password;
+        }
         this.email = email;
         this.limitIp = limitIp;
         this.totalGB = totalGB;
@@ -2211,6 +2226,11 @@ Inbound.ShadowsocksSettings.Shadowsocks = class extends XrayCommonClass {
         this.subId = subId;
         this.comment = comment;
         this.reset = reset;
+    }
+
+    // Метод для проверки является ли метод Shadowsocks 2022
+    isSS2022(method) {
+        return [SSMethods.BLAKE3_AES_128_GCM, SSMethods.BLAKE3_AES_256_GCM, SSMethods.BLAKE3_CHACHA20_POLY1305].includes(method);
     }
 
     toJson() {
