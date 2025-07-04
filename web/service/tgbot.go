@@ -1115,64 +1115,114 @@ func (t *Tgbot) answerCallback(callbackQuery *telego.CallbackQuery, isAdmin bool
 				t.addClient(chatId, message_text, messageId)
 				t.sendCallbackAnswerTgBot(callbackQuery.ID, t.I18nBot("tgbot.answers.successfulOperation"))
 			case "add_client_ip_limit_in":
-				if len(dataArray) >= 2 {
-					oldInputNumber, err := strconv.Atoi(dataArray[1])
-					inputNumber := oldInputNumber
-					if err == nil {
-						if len(dataArray) == 3 {
-							num, err := strconv.Atoi(dataArray[2])
-							if err == nil {
-								if num == -2 {
-									inputNumber = 0
-								} else if num == -1 {
-									if inputNumber > 0 {
-										inputNumber = (inputNumber / 10)
-									}
-								} else {
-									inputNumber = (inputNumber * 10) + num
-								}
-							}
-							if inputNumber == oldInputNumber {
-								t.sendCallbackAnswerTgBot(callbackQuery.ID, t.I18nBot("tgbot.answers.successfulOperation"))
-								return
-							}
-							if inputNumber >= 999999 {
-								t.sendCallbackAnswerTgBot(callbackQuery.ID, t.I18nBot("tgbot.answers.errorOperation"))
-								return
-							}
-						}
-						inlineKeyboard := tu.InlineKeyboard(
-							tu.InlineKeyboardRow(
-								tu.InlineKeyboardButton(t.I18nBot("tgbot.buttons.cancel")).WithCallbackData(t.encodeQuery("add_client_default_ip_limit")),
-							),
-							tu.InlineKeyboardRow(
-								tu.InlineKeyboardButton(t.I18nBot("tgbot.buttons.confirmNumber", "Num=="+strconv.Itoa(inputNumber))).WithCallbackData(t.encodeQuery("add_client_ip_limit_c "+strconv.Itoa(inputNumber))),
-							),
-							tu.InlineKeyboardRow(
-								tu.InlineKeyboardButton("1").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 1")),
-								tu.InlineKeyboardButton("2").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 2")),
-								tu.InlineKeyboardButton("3").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 3")),
-							),
-							tu.InlineKeyboardRow(
-								tu.InlineKeyboardButton("4").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 4")),
-								tu.InlineKeyboardButton("5").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 5")),
-								tu.InlineKeyboardButton("6").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 6")),
-							),
-							tu.InlineKeyboardRow(
-								tu.InlineKeyboardButton("7").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 7")),
-								tu.InlineKeyboardButton("8").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 8")),
-								tu.InlineKeyboardButton("9").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 9")),
-							),
-							tu.InlineKeyboardRow(
-								tu.InlineKeyboardButton("🔄").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" -2")),
-								tu.InlineKeyboardButton("0").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 0")),
-								tu.InlineKeyboardButton("⬅️").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" -1")),
-							),
-						)
-						t.editMessageCallbackTgBot(chatId, callbackQuery.Message.GetMessageID(), inlineKeyboard)
+				if len(dataArray) < 2 {
+					t.sendCallbackAnswerTgBot(callbackQuery.ID, t.I18nBot("tgbot.answers.errorOperation"))
+					// Refresh the client search UI
+					messageId := callbackQuery.Message.GetMessageID()
+					inbound, err := t.inboundService.GetInbound(receiver_inbound_ID)
+					if err != nil {
+						t.sendCallbackAnswerTgBot(callbackQuery.ID, err.Error())
 						return
 					}
+					message_text, err := t.BuildInboundClientDataMessage(inbound.Remark, inbound.Protocol)
+					if err != nil {
+						t.sendCallbackAnswerTgBot(callbackQuery.ID, err.Error())
+						return
+					}
+					t.addClient(chatId, message_text, messageId)
+					return
 				}
+				
+				oldInputNumber, err := strconv.Atoi(dataArray[1])
+				if err != nil {
+					t.sendCallbackAnswerTgBot(callbackQuery.ID, t.I18nBot("tgbot.answers.errorOperation"))
+					// Refresh the client search UI
+					messageId := callbackQuery.Message.GetMessageID()
+					inbound, err := t.inboundService.GetInbound(receiver_inbound_ID)
+					if err != nil {
+						t.sendCallbackAnswerTgBot(callbackQuery.ID, err.Error())
+						return
+					}
+					message_text, err := t.BuildInboundClientDataMessage(inbound.Remark, inbound.Protocol)
+					if err != nil {
+						t.sendCallbackAnswerTgBot(callbackQuery.ID, err.Error())
+						return
+					}
+					t.addClient(chatId, message_text, messageId)
+					return
+				}
+				
+				inputNumber := oldInputNumber
+				if len(dataArray) == 3 {
+					num, err := strconv.Atoi(dataArray[2])
+					if err != nil {
+						t.sendCallbackAnswerTgBot(callbackQuery.ID, t.I18nBot("tgbot.answers.errorOperation"))
+						// Refresh the client search UI
+						messageId := callbackQuery.Message.GetMessageID()
+						inbound, err := t.inboundService.GetInbound(receiver_inbound_ID)
+						if err != nil {
+							t.sendCallbackAnswerTgBot(callbackQuery.ID, err.Error())
+							return
+						}
+						message_text, err := t.BuildInboundClientDataMessage(inbound.Remark, inbound.Protocol)
+						if err != nil {
+							t.sendCallbackAnswerTgBot(callbackQuery.ID, err.Error())
+							return
+						}
+						t.addClient(chatId, message_text, messageId)
+						return
+					}
+					
+					if num == -2 {
+						inputNumber = 0
+					} else if num == -1 {
+						if inputNumber > 0 {
+							inputNumber = (inputNumber / 10)
+						}
+					} else {
+						inputNumber = (inputNumber * 10) + num
+					}
+				}
+				
+				if inputNumber == oldInputNumber {
+					t.sendCallbackAnswerTgBot(callbackQuery.ID, t.I18nBot("tgbot.answers.successfulOperation"))
+					return
+				}
+				if inputNumber >= 999999 {
+					t.sendCallbackAnswerTgBot(callbackQuery.ID, t.I18nBot("tgbot.answers.errorOperation"))
+					return
+				}
+				
+				inlineKeyboard := tu.InlineKeyboard(
+					tu.InlineKeyboardRow(
+						tu.InlineKeyboardButton(t.I18nBot("tgbot.buttons.cancel")).WithCallbackData(t.encodeQuery("add_client_default_ip_limit")),
+					),
+					tu.InlineKeyboardRow(
+						tu.InlineKeyboardButton(t.I18nBot("tgbot.buttons.confirmNumber", "Num=="+strconv.Itoa(inputNumber))).WithCallbackData(t.encodeQuery("add_client_ip_limit_c "+strconv.Itoa(inputNumber))),
+					),
+					tu.InlineKeyboardRow(
+						tu.InlineKeyboardButton("1").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 1")),
+						tu.InlineKeyboardButton("2").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 2")),
+						tu.InlineKeyboardButton("3").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 3")),
+					),
+					tu.InlineKeyboardRow(
+						tu.InlineKeyboardButton("4").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 4")),
+						tu.InlineKeyboardButton("5").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 5")),
+						tu.InlineKeyboardButton("6").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 6")),
+					),
+					tu.InlineKeyboardRow(
+						tu.InlineKeyboardButton("7").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 7")),
+						tu.InlineKeyboardButton("8").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 8")),
+						tu.InlineKeyboardButton("9").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 9")),
+					),
+					tu.InlineKeyboardRow(
+						tu.InlineKeyboardButton("🔄").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" -2")),
+						tu.InlineKeyboardButton("0").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" 0")),
+						tu.InlineKeyboardButton("⬅️").WithCallbackData(t.encodeQuery("add_client_ip_limit_in "+strconv.Itoa(inputNumber)+" -1")),
+					),
+				)
+				t.editMessageCallbackTgBot(chatId, callbackQuery.Message.GetMessageID(), inlineKeyboard)
+				return
 			case "clear_ips":
 				inlineKeyboard := tu.InlineKeyboard(
 					tu.InlineKeyboardRow(
