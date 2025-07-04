@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	mathRand "math/rand"
 	"net"
 	"net/url"
 	"os"
@@ -520,7 +521,22 @@ func (t *Tgbot) randomShadowSocksPassword() string {
 	array := make([]byte, 32)
 	_, err := rand.Read(array)
 	if err != nil {
-		return t.randomLowerAndNum(32)
+		// Если не удалось сгенерировать криптостойкие случайные байты,
+		// попробуем еще раз в цикле
+		for i := 0; i < 10; i++ {
+			_, err = rand.Read(array)
+			if err == nil {
+				break
+			}
+		}
+		// Если все попытки неудачны, используем time-based seed
+		if err != nil {
+			logger.Warning("Failed to generate cryptographically secure random bytes, using time-based fallback")
+			rng := mathRand.New(mathRand.NewSource(time.Now().UnixNano()))
+			for i := range array {
+				array[i] = byte(rng.Intn(256))
+			}
+		}
 	}
 	return base64.StdEncoding.EncodeToString(array)
 }
@@ -1157,8 +1173,6 @@ func (t *Tgbot) answerCallback(callbackQuery *telego.CallbackQuery, isAdmin bool
 						return
 					}
 				}
-				t.sendCallbackAnswerTgBot(callbackQuery.ID, t.I18nBot("tgbot.answers.errorOperation"))
-				t.searchClient(chatId, email, callbackQuery.Message.GetMessageID())
 			case "clear_ips":
 				inlineKeyboard := tu.InlineKeyboard(
 					tu.InlineKeyboardRow(
