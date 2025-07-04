@@ -19,8 +19,8 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: |
-          hsanaeii/3x-ui
-          ghcr.io/mhsanaei/3x-ui
+          lolka1337/3xui
+          ghcr.io/lolka1337/3xui
         tags: |
           type=ref,event=branch
           type=ref,event=tag
