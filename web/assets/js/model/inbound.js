@@ -2151,7 +2151,7 @@ Inbound.ShadowsocksSettings = class extends Inbound.Settings {
         method = SSMethods.BLAKE3_AES_256_GCM,
         password = '',
         network = 'tcp,udp',
-        shadowsockses = [new Inbound.ShadowsocksSettings.Shadowsocks(method)],
+        shadowsockses = [new Inbound.ShadowsocksSettings.Shadowsocks()],
         ivCheck = false,
     ) {
         super(protocol);
@@ -2210,8 +2210,13 @@ Inbound.ShadowsocksSettings.Shadowsocks = class extends XrayCommonClass {
     ) {
         super();
         this.method = method;
-        // Автоматически генерируем пароль для Shadowsocks 2022 если он пустой
-        if (password === '' && this.isSS2022(method)) {
+        // Для SS2022 в multi-user режиме метод должен быть пустым, а пароль генерируется из метода сервера
+        // Для обычных методов пароль обязателен
+        if (password === '' && method !== '' && !this.isSS2022(method)) {
+            // Для не-SS2022 методов генерируем случайный пароль если он пустой
+            this.password = RandomUtil.randomSeq(16);
+        } else if (password === '' && this.isSS2022(method)) {
+            // Для SS2022 методов используем специальную генерацию base64 пароля
             this.password = RandomUtil.randomShadowsocksPassword(method);
         } else {
             this.password = password;

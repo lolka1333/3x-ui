@@ -32,6 +32,7 @@
                 <template slot="title">
                     <span>{{ i18n "reset" }}</span>
                 </template> Password <a-icon @click="inbound.settings.password = RandomUtil.randomShadowsocksPassword(inbound.settings.method)" type="sync"></a-icon>
+                <a-icon @click="inbound.settings.password = RandomUtil.randomShadowsocksPasswordV2(inbound.settings.method)" type="reload" style="margin-left: 5px;"></a-icon>
             </a-tooltip>
         </template>
         <a-input v-model.trim="inbound.settings.password"></a-input>

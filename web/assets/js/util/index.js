@@ -152,6 +152,33 @@ class RandomUtil {
         return Base64.alternativeEncode(String.fromCharCode(...array));
     }
 
+    static randomShadowsocksPasswordV2(method = SSMethods.BLAKE3_AES_256_GCM) {
+        const words = ['Sky', 'Moon', 'Star', 'Sun', 'Cloud', 'Fire', 'Ice', 'Wind', 'Storm', 'Light',
+                      'Dark', 'Blue', 'Red', 'Green', 'Gold', 'Silver', 'Crystal', 'Dragon', 'Phoenix', 'Tiger'];
+        const numbers = '0123456789';
+        const special = '!@#$%&*';
+        
+        let result = '';
+        
+        for (let i = 0; i < 2; i++) {
+            result += words[Math.floor(Math.random() * words.length)];
+        }
+        
+        for (let i = 0; i < 4; i++) {
+            result += numbers[Math.floor(Math.random() * numbers.length)];
+        }
+        
+        for (let i = 0; i < 2; i++) {
+            result += special[Math.floor(Math.random() * special.length)];
+        }
+        
+        if ([SSMethods.BLAKE3_AES_128_GCM, SSMethods.BLAKE3_AES_256_GCM, SSMethods.BLAKE3_CHACHA20_POLY1305].includes(method)) {
+            return this.randomShadowsocksPassword(method);
+        }
+        
+        return result;
+    }
+
     static randomBase32String(length = 16) {
         const array = new Uint8Array(length);
         
