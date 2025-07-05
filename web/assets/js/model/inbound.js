@@ -2165,6 +2165,13 @@ Inbound.ShadowsocksSettings = class extends Inbound.Settings {
         this.network = network;
         this.shadowsockses = shadowsockses;
         this.ivCheck = ivCheck;
+        
+        // Автоматически генерируем пароли для клиентов Shadowsocks 2022
+        this.shadowsockses.forEach(client => {
+            if (client.password === '' && this.isSS2022(method)) {
+                client.password = RandomUtil.randomShadowsocksPassword(method);
+            }
+        });
     }
 
     // Метод для проверки является ли метод Shadowsocks 2022
@@ -2173,7 +2180,7 @@ Inbound.ShadowsocksSettings = class extends Inbound.Settings {
     }
 
     static fromJson(json = {}) {
-        return new Inbound.ShadowsocksSettings(
+        const settings = new Inbound.ShadowsocksSettings(
             Protocols.SHADOWSOCKS,
             json.method,
             json.password,
@@ -2181,6 +2188,15 @@ Inbound.ShadowsocksSettings = class extends Inbound.Settings {
             json.clients.map(client => Inbound.ShadowsocksSettings.Shadowsocks.fromJson(client)),
             json.ivCheck,
         );
+        
+        // Автоматически генерируем пароли для клиентов Shadowsocks 2022 при загрузке из JSON
+        settings.shadowsockses.forEach(client => {
+            if (client.password === '' && settings.isSS2022(json.method)) {
+                client.password = RandomUtil.randomShadowsocksPassword(json.method);
+            }
+        });
+        
+        return settings;
     }
 
     toJson() {
@@ -2191,6 +2207,41 @@ Inbound.ShadowsocksSettings = class extends Inbound.Settings {
             clients: Inbound.ShadowsocksSettings.toJsonArray(this.shadowsockses),
             ivCheck: this.ivCheck,
         };
+    }
+
+    // Метод для добавления нового клиента с автоматической генерацией пароля
+    addClient(client) {
+        if (!client) {
+            client = new Inbound.ShadowsocksSettings.Shadowsocks();
+        }
+        
+        // Автоматически генерируем пароль для Shadowsocks 2022 если он пустой
+        if (client.password === '' && this.isSS2022(this.method)) {
+            client.password = RandomUtil.randomShadowsocksPassword(this.method);
+        }
+        
+        this.shadowsockses.push(client);
+        return client;
+    }
+
+    // Метод для обновления метода шифрования с автоматической генерацией паролей
+    updateMethod(newMethod) {
+        this.method = newMethod;
+        
+        // Обновляем пароли для всех клиентов если новый метод - Shadowsocks 2022
+        if (this.isSS2022(newMethod)) {
+            // Генерируем новый пароль для основного inbound
+            if (this.password === '') {
+                this.password = RandomUtil.randomShadowsocksPassword(newMethod);
+            }
+            
+            // Генерируем новые пароли для всех клиентов с пустыми паролями
+            this.shadowsockses.forEach(client => {
+                if (client.password === '') {
+                    client.password = RandomUtil.randomShadowsocksPassword(newMethod);
+                }
+            });
+        }
     }
 };
 
@@ -2232,6 +2283,15 @@ Inbound.ShadowsocksSettings.Shadowsocks = class extends XrayCommonClass {
         return [SSMethods.BLAKE3_AES_128_GCM, SSMethods.BLAKE3_AES_256_GCM, SSMethods.BLAKE3_CHACHA20_POLY1305].includes(method);
     }
 
+    // Метод для установки пароля с автоматической генерацией для SS2022
+    setPassword(password, method) {
+        if (password === '' && this.isSS2022(method)) {
+            this.password = RandomUtil.randomShadowsocksPassword(method);
+        } else {
+            this.password = password;
+        }
+    }
+
     toJson() {
         return {
             method: this.method,
@@ -2249,7 +2309,7 @@ Inbound.ShadowsocksSettings.Shadowsocks = class extends XrayCommonClass {
     }
 
     static fromJson(json = {}) {
-        return new Inbound.ShadowsocksSettings.Shadowsocks(
+        const client = new Inbound.ShadowsocksSettings.Shadowsocks(
             json.method,
             json.password,
             json.email,
@@ -2262,6 +2322,13 @@ Inbound.ShadowsocksSettings.Shadowsocks = class extends XrayCommonClass {
             json.comment,
             json.reset,
         );
+        
+        // Автоматически генерируем пароль для Shadowsocks 2022 если он пустой при загрузке из JSON
+        if (client.password === '' && client.isSS2022(json.method)) {
+            client.password = RandomUtil.randomShadowsocksPassword(json.method);
+        }
+        
+        return client;
     }
 
     get _expiryTime() {
