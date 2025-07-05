@@ -139,10 +139,15 @@ class RandomUtil {
     }
 
     static randomShadowsocksPassword(method = SSMethods.BLAKE3_AES_256_GCM) {
-        let length = 32;
+        let length = 32; // Default для AES-256 и ChaCha20
 
+        // Для AES-128 используем 16 байт
         if ([SSMethods.BLAKE3_AES_128_GCM].includes(method)) {
             length = 16; 
+        }
+        // Для AES-256 и ChaCha20 используем 32 байта
+        else if ([SSMethods.BLAKE3_AES_256_GCM, SSMethods.BLAKE3_CHACHA20_POLY1305].includes(method)) {
+            length = 32;
         }
 
         const array = new Uint8Array(length);
