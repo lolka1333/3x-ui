@@ -17,6 +17,22 @@ import (
 	"gorm.io/gorm"
 )
 
+// isSS2022 проверяет является ли метод Shadowsocks 2022
+func isSS2022(method string) bool {
+	ss2022Methods := []string{
+		"2022-blake3-aes-128-gcm",
+		"2022-blake3-aes-256-gcm",
+		"2022-blake3-chacha20-poly1305",
+	}
+	
+	for _, ss2022Method := range ss2022Methods {
+		if method == ss2022Method {
+			return true
+		}
+	}
+	return false
+}
+
 type InboundService struct {
 	xrayApi xray.XrayAPI
 }
@@ -488,7 +504,11 @@ func (s *InboundService) AddInboundClient(data *model.Inbound) (bool, error) {
 			if client.Enable {
 				cipher := ""
 				if oldInbound.Protocol == "shadowsocks" {
-					cipher = oldSettings["method"].(string)
+					method := oldSettings["method"].(string)
+					// Для Shadowsocks 2022 cipher должен быть пустым
+					if !isSS2022(method) {
+						cipher = method
+					}
 				}
 				err1 := s.xrayApi.AddUser(string(oldInbound.Protocol), oldInbound.Tag, map[string]any{
 					"email":    client.Email,
@@ -731,7 +751,11 @@ func (s *InboundService) UpdateInboundClient(data *model.Inbound, clientId strin
 		if clients[0].Enable {
 			cipher := ""
 			if oldInbound.Protocol == "shadowsocks" {
-				cipher = oldSettings["method"].(string)
+				method := oldSettings["method"].(string)
+				// Для Shadowsocks 2022 cipher должен быть пустым
+				if !isSS2022(method) {
+					cipher = method
+				}
 			}
 			err1 := s.xrayApi.AddUser(string(oldInbound.Protocol), oldInbound.Tag, map[string]any{
 				"email":    clients[0].Email,
@@ -1588,7 +1612,11 @@ func (s *InboundService) ResetClientTraffic(id int, clientEmail string) (bool, e
 					if err != nil {
 						return false, err
 					}
-					cipher = oldSettings["method"].(string)
+					method := oldSettings["method"].(string)
+					// Для Shadowsocks 2022 cipher должен быть пустым
+					if !isSS2022(method) {
+						cipher = method
+					}
 				}
 				err1 := s.xrayApi.AddUser(string(inbound.Protocol), inbound.Tag, map[string]any{
 					"email":    client.Email,

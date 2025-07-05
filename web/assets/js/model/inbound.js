@@ -2233,8 +2233,11 @@ Inbound.ShadowsocksSettings.Shadowsocks = class extends XrayCommonClass {
     }
 
     toJson() {
+        // Для Shadowsocks 2022 в multi-user режиме method должен быть пустым
+        const method = this.isSS2022(this.method) ? '' : this.method;
+        
         return {
-            method: this.method,
+            method: method,
             password: this.password,
             email: this.email,
             limitIp: this.limitIp,
