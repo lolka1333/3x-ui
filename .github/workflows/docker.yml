@@ -23,7 +23,7 @@ jobs:
       with:
         images: |
           lolka1337/3xui
-          ghcr.io/lolka1337/3xui
+          ghcr.io/lolka1337/3x-ui
         tags: |
           type=ref,event=branch
           type=ref,event=tag
