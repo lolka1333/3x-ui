@@ -115,12 +115,19 @@
                     } else {
                         this.inModal.inbound.settings.shadowsockses.forEach(client => {
                             client.method = "";
+                            // Автоматически генерируем пароль для Shadowsocks 2022
+                            client.password = RandomUtil.randomShadowsocksPassword(this.inModal.inbound.settings.method);
                         })
                     }
                 } else {
                     if (this.inModal.inbound.settings.shadowsockses.length > 0){
                         this.inModal.inbound.settings.shadowsockses = [];
                     }
+                }
+                
+                // Автоматически генерируем пароль для основных настроек Shadowsocks 2022
+                if (this.inModal.inbound.isSS2022) {
+                    this.inModal.inbound.settings.password = RandomUtil.randomShadowsocksPassword(this.inModal.inbound.settings.method);
                 }
             },
             setDefaultCertData(index) {
