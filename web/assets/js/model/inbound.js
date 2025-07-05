@@ -2173,14 +2173,17 @@ Inbound.ShadowsocksSettings = class extends Inbound.Settings {
     }
 
     static fromJson(json = {}) {
-        return new Inbound.ShadowsocksSettings(
+        const settings = new Inbound.ShadowsocksSettings(
             Protocols.SHADOWSOCKS,
             json.method,
-            json.password,
+            '', // Не генерируем пароль автоматически при загрузке из JSON
             json.network,
             json.clients.map(client => Inbound.ShadowsocksSettings.Shadowsocks.fromJson(client)),
             json.ivCheck,
         );
+        // Устанавливаем пароль напрямую, чтобы избежать автогенерации
+        settings.password = json.password || '';
+        return settings;
     }
 
     toJson() {
@@ -2234,7 +2237,7 @@ Inbound.ShadowsocksSettings.Shadowsocks = class extends XrayCommonClass {
 
     toJson() {
         return {
-            method: this.method,
+            method: this.isSS2022(this.method) ? '' : this.method,
             password: this.password,
             email: this.email,
             limitIp: this.limitIp,
@@ -2249,9 +2252,9 @@ Inbound.ShadowsocksSettings.Shadowsocks = class extends XrayCommonClass {
     }
 
     static fromJson(json = {}) {
-        return new Inbound.ShadowsocksSettings.Shadowsocks(
+        const shadowsocks = new Inbound.ShadowsocksSettings.Shadowsocks(
             json.method,
-            json.password,
+            '', // Не генерируем пароль автоматически при загрузке из JSON
             json.email,
             json.limitIp,
             json.totalGB,
@@ -2262,6 +2265,9 @@ Inbound.ShadowsocksSettings.Shadowsocks = class extends XrayCommonClass {
             json.comment,
             json.reset,
         );
+        // Устанавливаем пароль напрямую, чтобы избежать автогенерации
+        shadowsocks.password = json.password || '';
+        return shadowsocks;
     }
 
     get _expiryTime() {
