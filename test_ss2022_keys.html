@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест генерации ключей SS2022</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>Тест генерации ключей Shadowsocks 2022</h1>
+    
+    <div>
+        <h2>Тест 1: Генерация ключа для 2022-blake3-aes-128-gcm (16 байт)</h2>
+        <button onclick="testAES128()">Сгенерировать ключ AES-128</button>
+        <div id="aes128-result"></div>
+    </div>
+    
+    <div>
+        <h2>Тест 2: Генерация ключа для 2022-blake3-aes-256-gcm (32 байта)</h2>
+        <button onclick="testAES256()">Сгенерировать ключ AES-256</button>
+        <div id="aes256-result"></div>
+    </div>
+    
+    <div>
+        <h2>Тест 3: Генерация ключа для 2022-blake3-chacha20-poly1305 (32 байта)</h2>
+        <button onclick="testChacha20()">Сгенерировать ключ ChaCha20</button>
+        <div id="chacha20-result"></div>
+    </div>
+    
+    <div>
+        <h2>Тест 4: Создание ShadowsocksSettings с автогенерацией ключей</h2>
+        <button onclick="testShadowsocksSettings()">Тестировать ShadowsocksSettings</button>
+        <div id="settings-result"></div>
+    </div>
+
+    <script>
+        // Include our utility classes
+        class Base64 {
+            static alternativeEncode(content) {
+                return window.btoa(content);
+            }
+        }
+
+        class RandomUtil {
+            static randomShadowsocksPassword(method = '2022-blake3-aes-256-gcm') {
+                let length = 32;
+                // Для 2022-blake3-aes-128-gcm используем 16 байт
+                if (['2022-blake3-aes-128-gcm'].includes(method)) {
+                    length = 16; 
+                }
+                const array = new Uint8Array(length);
+                window.crypto.getRandomValues(array);
+                return Base64.alternativeEncode(String.fromCharCode(...array));
+            }
+        }
+
+        function testAES128() {
+            try {
+                const key = RandomUtil.randomShadowsocksPassword('2022-blake3-aes-128-gcm');
+                const decodedLength = atob(key).length;
+                document.getElementById('aes128-result').innerHTML = `
+                    <p><strong>Ключ:</strong> ${key}</p>
+                    <p><strong>Длина (bytes):</strong> ${decodedLength}</p>
+                    <p><strong>Статус:</strong> ${decodedLength === 16 ? '✅ УСПЕХ' : '❌ ОШИБКА'}</p>
+                `;
+            } catch (error) {
+                document.getElementById('aes128-result').innerHTML = `<p style="color: red;">❌ Ошибка: ${error.message}</p>`;
+            }
+        }
+
+        function testAES256() {
+            try {
+                const key = RandomUtil.randomShadowsocksPassword('2022-blake3-aes-256-gcm');
+                const decodedLength = atob(key).length;
+                document.getElementById('aes256-result').innerHTML = `
+                    <p><strong>Ключ:</strong> ${key}</p>
+                    <p><strong>Длина (bytes):</strong> ${decodedLength}</p>
+                    <p><strong>Статус:</strong> ${decodedLength === 32 ? '✅ УСПЕХ' : '❌ ОШИБКА'}</p>
+                `;
+            } catch (error) {
+                document.getElementById('aes256-result').innerHTML = `<p style="color: red;">❌ Ошибка: ${error.message}</p>`;
+            }
+        }
+
+        function testChacha20() {
+            try {
+                const key = RandomUtil.randomShadowsocksPassword('2022-blake3-chacha20-poly1305');
+                const decodedLength = atob(key).length;
+                document.getElementById('chacha20-result').innerHTML = `
+                    <p><strong>Ключ:</strong> ${key}</p>
+                    <p><strong>Длина (bytes):</strong> ${decodedLength}</p>
+                    <p><strong>Статус:</strong> ${decodedLength === 32 ? '✅ УСПЕХ' : '❌ ОШИБКА'}</p>
+                `;
+            } catch (error) {
+                document.getElementById('chacha20-result').innerHTML = `<p style="color: red;">❌ Ошибка: ${error.message}</p>`;
+            }
+        }
+
+        function testShadowsocksSettings() {
+            try {
+                // Simulate the SS2022 methods constants
+                const SSMethods = {
+                    BLAKE3_AES_128_GCM: '2022-blake3-aes-128-gcm',
+                    BLAKE3_AES_256_GCM: '2022-blake3-aes-256-gcm',
+                    BLAKE3_CHACHA20_POLY1305: '2022-blake3-chacha20-poly1305'
+                };
+
+                // Simulate the Shadowsocks class
+                class Shadowsocks {
+                    constructor(method = '', password = '') {
+                        this.method = method;
+                        if (password === '' && this.isSS2022(method)) {
+                            this.password = RandomUtil.randomShadowsocksPassword(method);
+                        } else {
+                            this.password = password;
+                        }
+                    }
+
+                    isSS2022(method) {
+                        return [SSMethods.BLAKE3_AES_128_GCM, SSMethods.BLAKE3_AES_256_GCM, SSMethods.BLAKE3_CHACHA20_POLY1305].includes(method);
+                    }
+                }
+
+                // Test создания клиентов с разными методами
+                const client128 = new Shadowsocks(SSMethods.BLAKE3_AES_128_GCM);
+                const client256 = new Shadowsocks(SSMethods.BLAKE3_AES_256_GCM);
+                const clientChacha = new Shadowsocks(SSMethods.BLAKE3_CHACHA20_POLY1305);
+
+                const result128Length = atob(client128.password).length;
+                const result256Length = atob(client256.password).length;
+                const resultChachaLength = atob(clientChacha.password).length;
+
+                document.getElementById('settings-result').innerHTML = `
+                    <h3>AES-128 клиент:</h3>
+                    <p><strong>Метод:</strong> ${client128.method}</p>
+                    <p><strong>Ключ:</strong> ${client128.password}</p>
+                    <p><strong>Длина:</strong> ${result128Length} байт</p>
+                    <p><strong>Статус:</strong> ${result128Length === 16 ? '✅ УСПЕХ' : '❌ ОШИБКА'}</p>
+                    
+                    <h3>AES-256 клиент:</h3>
+                    <p><strong>Метод:</strong> ${client256.method}</p>
+                    <p><strong>Ключ:</strong> ${client256.password}</p>
+                    <p><strong>Длина:</strong> ${result256Length} байт</p>
+                    <p><strong>Статус:</strong> ${result256Length === 32 ? '✅ УСПЕХ' : '❌ ОШИБКА'}</p>
+                    
+                    <h3>ChaCha20 клиент:</h3>
+                    <p><strong>Метод:</strong> ${clientChacha.method}</p>
+                    <p><strong>Ключ:</strong> ${clientChacha.password}</p>
+                    <p><strong>Длина:</strong> ${resultChachaLength} байт</p>
+                    <p><strong>Статус:</strong> ${resultChachaLength === 32 ? '✅ УСПЕХ' : '❌ ОШИБКА'}</p>
+                `;
+            } catch (error) {
+                document.getElementById('settings-result').innerHTML = `<p style="color: red;">❌ Ошибка: ${error.message}</p>`;
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        div {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        p {
+            margin: 5px 0;
+        }
+    </style>
+</body>
+</html>

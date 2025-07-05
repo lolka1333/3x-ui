@@ -2151,7 +2151,7 @@ Inbound.ShadowsocksSettings = class extends Inbound.Settings {
         method = SSMethods.BLAKE3_AES_256_GCM,
         password = '',
         network = 'tcp,udp',
-        shadowsockses = [new Inbound.ShadowsocksSettings.Shadowsocks()],
+        shadowsockses = null,
         ivCheck = false,
     ) {
         super(protocol);
@@ -2163,13 +2163,24 @@ Inbound.ShadowsocksSettings = class extends Inbound.Settings {
             this.password = password;
         }
         this.network = network;
-        this.shadowsockses = shadowsockses;
+        // Создаем shadowsockses после того, как method установлен
+        this.shadowsockses = shadowsockses || [new Inbound.ShadowsocksSettings.Shadowsocks(method)];
         this.ivCheck = ivCheck;
     }
 
     // Метод для проверки является ли метод Shadowsocks 2022
     isSS2022(method) {
         return [SSMethods.BLAKE3_AES_128_GCM, SSMethods.BLAKE3_AES_256_GCM, SSMethods.BLAKE3_CHACHA20_POLY1305].includes(method);
+    }
+
+    // Добавить нового клиента Shadowsocks
+    addShadowsocks(shadowsocks) {
+        this.shadowsockses.push(shadowsocks);
+    }
+
+    // Удалить клиента Shadowsocks
+    delShadowsocks(index) {
+        this.shadowsockses.splice(index, 1);
     }
 
     static fromJson(json = {}) {
