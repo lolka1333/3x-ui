@@ -2151,7 +2151,7 @@ Inbound.ShadowsocksSettings = class extends Inbound.Settings {
         method = SSMethods.BLAKE3_AES_256_GCM,
         password = '',
         network = 'tcp,udp',
-        shadowsockses = [new Inbound.ShadowsocksSettings.Shadowsocks()],
+        shadowsockses = [new Inbound.ShadowsocksSettings.Shadowsocks(method)],
         ivCheck = false,
     ) {
         super(protocol);
