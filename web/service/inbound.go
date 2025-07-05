@@ -179,11 +179,12 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, boo
 	for _, client := range clients {
 		if inbound.Protocol == "trojan" {
 			if client.Password == "" {
-				return inbound, false, common.NewError("empty client ID")
+				return inbound, false, common.NewError("empty client password")
 			}
 		} else if inbound.Protocol == "shadowsocks" {
+			// For shadowsocks, email is required, but password can be empty (especially for SS2022)
 			if client.Email == "" {
-				return inbound, false, common.NewError("empty client ID")
+				return inbound, false, common.NewError("empty client email")
 			}
 		} else {
 			if client.ID == "" {
@@ -438,11 +439,12 @@ func (s *InboundService) AddInboundClient(data *model.Inbound) (bool, error) {
 	for _, client := range clients {
 		if oldInbound.Protocol == "trojan" {
 			if client.Password == "" {
-				return false, common.NewError("empty client ID")
+				return false, common.NewError("empty client password")
 			}
 		} else if oldInbound.Protocol == "shadowsocks" {
+			// For shadowsocks, email is required, but password can be empty (especially for SS2022)
 			if client.Email == "" {
-				return false, common.NewError("empty client ID")
+				return false, common.NewError("empty client email")
 			}
 		} else {
 			if client.ID == "" {
@@ -649,7 +651,12 @@ func (s *InboundService) UpdateInboundClient(data *model.Inbound, clientId strin
 	}
 
 	// Validate new client ID
-	if newClientId == "" || clientIndex == -1 {
+	if clientIndex == -1 {
+		return false, common.NewError("client not found")
+	}
+	
+	// For shadowsocks, we don't need to validate password as newClientId
+	if oldInbound.Protocol != "shadowsocks" && newClientId == "" {
 		return false, common.NewError("empty client ID")
 	}
 

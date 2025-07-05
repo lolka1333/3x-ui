@@ -2051,7 +2051,7 @@ Inbound.TrojanSettings.Trojan = class extends XrayCommonClass {
     }
 
     toJson() {
-        return {
+        const json = {
             password: this.password,
             email: this.email,
             limitIp: this.limitIp,
@@ -2063,6 +2063,13 @@ Inbound.TrojanSettings.Trojan = class extends XrayCommonClass {
             comment: this.comment,
             reset: this.reset,
         };
+        
+        // Для SS2022 методов не включаем method в JSON клиента
+        if (!this.isSS2022(this.method)) {
+            json.method = this.method;
+        }
+        
+        return json;
     }
 
     static fromJson(json = {}) {
@@ -2233,8 +2240,7 @@ Inbound.ShadowsocksSettings.Shadowsocks = class extends XrayCommonClass {
     }
 
     toJson() {
-        return {
-            method: this.method,
+        const json = {
             password: this.password,
             email: this.email,
             limitIp: this.limitIp,
@@ -2246,6 +2252,13 @@ Inbound.ShadowsocksSettings.Shadowsocks = class extends XrayCommonClass {
             comment: this.comment,
             reset: this.reset,
         };
+        
+        // Для SS2022 методов не включаем method в JSON клиента
+        if (!this.isSS2022(this.method)) {
+            json.method = this.method;
+        }
+        
+        return json;
     }
 
     static fromJson(json = {}) {
