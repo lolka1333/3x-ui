@@ -4,10 +4,13 @@ on:
   push:
     tags:
       - "v*.*.*"
-
+      
 jobs:
   build:
     runs-on: ubuntu-22.04
+    permissions:  # Добавьте эти права
+      contents: read
+      packages: write
 
     steps:
     - uses: actions/checkout@v4
@@ -25,6 +28,7 @@ jobs:
           type=ref,event=branch
           type=ref,event=tag
           type=pep440,pattern={{version}}
+          type=raw,value=main,enable={{is_default_branch}}  # Добавьте тег main
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
