@@ -608,7 +608,7 @@ class Outbound extends CommonClass {
 
     //this is used for xtls-rprx-vision
     canEnableTlsFlow() {
-        if ((this.stream.security != 'none') && (this.stream.network === "tcp")) {
+        if ((this.stream.security != 'none') && (this.stream.network === "tcp" || this.stream.network === "xhttp")) {
             return this.protocol === Protocols.VLESS;
         }
         return false;
