@@ -411,7 +411,7 @@ func (s *SubService) genVlessLink(inbound *model.Inbound, email string) string {
 			}
 		}
 
-		if streamNetwork == "tcp" && len(clients[clientIndex].Flow) > 0 {
+		if (streamNetwork == "tcp" || streamNetwork == "xhttp") && len(clients[clientIndex].Flow) > 0 {
 			params["flow"] = clients[clientIndex].Flow
 		}
 	}
@@ -445,7 +445,7 @@ func (s *SubService) genVlessLink(inbound *model.Inbound, email string) string {
 			params["spx"] = "/" + random.Seq(15)
 		}
 
-		if streamNetwork == "tcp" && len(clients[clientIndex].Flow) > 0 {
+		if (streamNetwork == "tcp" || streamNetwork == "xhttp") && len(clients[clientIndex].Flow) > 0 {
 			params["flow"] = clients[clientIndex].Flow
 		}
 	}
@@ -640,7 +640,7 @@ func (s *SubService) genTrojanLink(inbound *model.Inbound, email string) string 
 			params["spx"] = "/" + random.Seq(15)
 		}
 
-		if streamNetwork == "tcp" && len(clients[clientIndex].Flow) > 0 {
+		if (streamNetwork == "tcp" || streamNetwork == "xhttp") && len(clients[clientIndex].Flow) > 0 {
 			params["flow"] = clients[clientIndex].Flow
 		}
 	}

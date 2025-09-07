@@ -1202,7 +1202,7 @@ class Inbound extends XrayCommonClass {
 
     //this is used for xtls-rprx-vision
     canEnableTlsFlow() {
-        if (((this.stream.security === 'tls') || (this.stream.security === 'reality')) && (this.network === "tcp")) {
+        if (((this.stream.security === 'tls') || (this.stream.security === 'reality')) && (["tcp", "xhttp"].includes(this.network))) {
             return this.protocol === Protocols.VLESS;
         }
         return false;
@@ -1360,7 +1360,7 @@ class Inbound extends XrayCommonClass {
                 if (this.stream.tls.settings.echConfigList?.length > 0) {
                     params.set("ech", this.stream.tls.settings.echConfigList);
                 }
-                if (type == "tcp" && !ObjectUtil.isEmpty(flow)) {
+                if ((type == "tcp" || type == "xhttp") && !ObjectUtil.isEmpty(flow)) {
                     params.set("flow", flow);
                 }
             }
@@ -1382,7 +1382,7 @@ class Inbound extends XrayCommonClass {
             if (!ObjectUtil.isEmpty(this.stream.reality.settings.mldsa65Verify)) {
                 params.set("pqv", this.stream.reality.settings.mldsa65Verify);
             }
-            if (type == 'tcp' && !ObjectUtil.isEmpty(flow)) {
+            if ((type == 'tcp' || type == 'xhttp') && !ObjectUtil.isEmpty(flow)) {
                 params.set("flow", flow);
             }
         }
