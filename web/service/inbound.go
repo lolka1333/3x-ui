@@ -209,6 +209,35 @@ func (s *InboundService) checkEmailExistForInbound(inbound *model.Inbound) (stri
 	return "", nil
 }
 
+// findNextAvailableID finds the first available ID by looking for gaps in the ID sequence.
+// If no gaps exist, returns max ID + 1.
+func (s *InboundService) findNextAvailableID(tx *gorm.DB) (int, error) {
+	var existingIDs []int
+	err := tx.Model(model.Inbound{}).Select("id").Order("id ASC").Pluck("id", &existingIDs).Error
+	if err != nil {
+		return 0, err
+	}
+
+	// If no inbounds exist, start with ID 1
+	if len(existingIDs) == 0 {
+		return 1, nil
+	}
+
+	// Find the first gap in the sequence
+	expectedID := 1
+	for _, id := range existingIDs {
+		if id == expectedID {
+			expectedID++
+		} else if id > expectedID {
+			// Found a gap, return the first available ID
+			return expectedID, nil
+		}
+	}
+
+	// No gaps found, return max ID + 1
+	return existingIDs[len(existingIDs)-1] + 1, nil
+}
+
 // AddInbound creates a new inbound configuration.
 // It validates port uniqueness, client email uniqueness, and required fields,
 // then saves the inbound to the database and optionally adds it to the running Xray instance.
@@ -286,6 +315,13 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, boo
 			tx.Rollback()
 		}
 	}()
+
+	// Find the next available ID (reuse deleted IDs if possible)
+	nextID, err := s.findNextAvailableID(tx)
+	if err != nil {
+		return inbound, false, err
+	}
+	inbound.Id = nextID
 
 	err = tx.Save(inbound).Error
 	if err == nil {
