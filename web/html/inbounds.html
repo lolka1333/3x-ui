@@ -1617,10 +1617,21 @@
             let onlineChanged = this.onlineClients.length !== nextOnlineClients.length;
             if (!onlineChanged) {
               const prevSet = new Set(this.onlineClients);
+              const nextSet = new Set(nextOnlineClients);
+              // Check if any email was added
               for (const email of nextOnlineClients) {
                 if (!prevSet.has(email)) {
                   onlineChanged = true;
                   break;
+                }
+              }
+              // Check if any email was removed
+              if (!onlineChanged) {
+                for (const email of this.onlineClients) {
+                  if (!nextSet.has(email)) {
+                    onlineChanged = true;
+                    break;
+                  }
                 }
               }
             }
